@@ -1,0 +1,64 @@
+=================================================
+Notepad++ - Code generator - Regular expressions:
+=================================================
+
+-------------------------
+Property with type check:
+-------------------------
+
+Syntax: TypeName;PropertyName
+
+Search:
+^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$
+
+Replace: (None is allowed)
+@property\r\ndef \2\(self\) -> \1:\r\n    return self._\2\r\n\r\n@\2.setter\r\ndef \2\(self, value: \1\) -> None:\r\n    if not \( \(value is None\) or isinstance\(value, \1\) \):\r\n        raise TypeError\('The \2 property of {} class shall have {} type.'\r\n                        .format\(self.__class__.__name__, \1.__name__\)\)\r\n    self._\2 = value
+
+Replace: (None is forbidden)
+@property\r\ndef \2\(self\) -> \1:\r\n    return self._\2\r\n\r\n@\2.setter\r\ndef \2\(self, value: \1\) -> None:\r\n    if not isinstance\(value, \1\):\r\n        raise TypeError\('The \2 property of {} class shall have {} type.'\r\n                        .format\(self.__class__.__name__, \1.__name__\)\)\r\n    self._\2 = value
+
+Assert Replace: (None is allowed)
+@property\r\ndef \2\(self\) -> \1:\r\n    return self._\2\r\n\r\n@\2.setter\r\ndef \2\(self, value: \1\) -> None:\r\n    assert \(value is None\) or isinstance\(value, \1\), 'The \2 property of {} class shall have {} type.'\\\r\n           .format\(self.__class__.__name__, \1.__name__\)\r\n    self._\2 = value
+
+Assert Replace: (None is forbidden)
+@property\r\ndef \2\(self\) -> \1:\r\n    return self._\2\r\n\r\n@\2.setter\r\ndef \2\(self, value: \1\) -> None:\r\n    assert isinstance\(value, \1\), 'The \2 property of {} class shall have {} type.'\\\r\n           .format\(self.__class__.__name__, \1.__name__\)\r\n    self._\2 = value
+
+
+Example:
+logging.Logger;logger
+
+@property
+def logger(self) -> logging.Logger:
+    return self._logger
+
+@logger.setter
+def logger(self, value: logging.Logger) -> None:
+    if not ( (value is None) or isinstance(value, logging.Logger) ):
+        raise TypeError('The logger property of {} shall have {} type.'
+                        .format(self.__class__.__name__, logging.Logger.__name__))
+    self._logger = value
+    
+
+    
+------------------------
+Method with type checks:
+------------------------
+
+Syntax: MethodRetType;MethodName;MethodParam1_Type,MethodParam1_Name;...;MethodParamN_Type,MethodParamN_Name
+There are different regular expressions based on param numbers. (zero is not supported because it is trivial)
+
+Parameter x1:
+^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$
+
+def \2\(self, \4: \3\) -> \1:\r\n    if not isinstance\(\4, \3\):\r\n        raise TypeError\('The \4 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \3.__name__\)\)\r\n
+
+Parameter x2:
+^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$
+
+def \2\(self, \4: \3\) -> \1:\r\n    if not isinstance\(\4, \3\):\r\n        raise TypeError\('The \4 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \3.__name__\)\)\r\n    if not isinstance\(\6, \5\):\r\n        raise TypeError\('The \6 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \5.__name__\)\)\r\n
+
+Parameter x3:
+^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$
+
+def \2\(self, \4: \3\) -> \1:\r\n    if not isinstance\(\4, \3\):\r\n        raise TypeError\('The \4 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \3.__name__\)\)\r\n    if not isinstance\(\6, \5\):\r\n        raise TypeError\('The \6 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \5.__name__\)\)\r\n    if not isinstance\(\8, \7\):\r\n        raise TypeError\('The \8 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \7.__name__\)\)\r\n
+    
