@@ -21,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="dictmdl.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="language\article.py">
       <SubType>Code</SubType>
     </Compile>
@@ -39,16 +42,23 @@
     <Compile Include="language\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="parser.py">
+    <Compile Include="persistence.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pydict.py" />
+    <Compile Include="test\dictparse.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="dict.xml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="language\" />
+    <Folder Include="test\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

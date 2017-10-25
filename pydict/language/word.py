@@ -10,7 +10,14 @@ class WordClass(Enum):
 class Word(LangObj):
     """description of class"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._hun = set()
+
     @abc.abstractmethod
     def get_wordclass(self):
         pass
-        
+       
+    @property
+    def hun(self) -> set:
+        return self._hun

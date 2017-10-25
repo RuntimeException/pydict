@@ -1,4 +1,5 @@
-from word import Word, WordClass
+from language.word import Word, WordClass
+from language.article import GrammaticalGender
 
 class Noun(Word):
     """description of class"""
@@ -12,7 +13,7 @@ class Noun(Word):
 
     @gender.setter
     def gender(self, value: GrammaticalGender) -> None:
-        assert isinstance(value, GrammaticalGender), 'The gender property of {} class shall have {} type.'\
+        assert (value is None) or isinstance(value, GrammaticalGender), 'The gender property of {} class shall have {} type.'\
                .format(self.__class__.__name__, GrammaticalGender.__name__)
         self._gender = value
 
@@ -25,6 +26,16 @@ class Noun(Word):
         assert isinstance(value, bool), 'The singular_exist property of {} class shall have {} type.'\
                .format(self.__class__.__name__, bool.__name__)
         self._singular_exist = value
+
+    @property
+    def plural_exist(self) -> bool:
+        return self._plural_exist
+
+    @plural_exist.setter
+    def plural_exist(self, value: bool) -> None:
+        assert isinstance(value, bool), 'The plural_exist property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, bool.__name__)
+        self._plural_exist = value
     
     @property
     def nounsn(self) -> str:
@@ -32,7 +43,7 @@ class Noun(Word):
 
     @nounsn.setter
     def nounsn(self, value: str) -> None:
-        assert isinstance(value, str), 'The nounsn property of {} class shall have {} type.'\
+        assert (value is None) or isinstance(value, str), 'The nounsn property of {} class shall have {} type.'\
                .format(self.__class__.__name__, str.__name__)
         self._nounsn = value
 
@@ -42,7 +53,7 @@ class Noun(Word):
 
     @nounpl.setter
     def nounpl(self, value: str) -> None:
-        assert isinstance(value, str), 'The nounpl property of {} class shall have {} type.'\
+        assert (value is None) or isinstance(value, str), 'The nounpl property of {} class shall have {} type.'\
                .format(self.__class__.__name__, str.__name__)
         self._nounpl = value
 

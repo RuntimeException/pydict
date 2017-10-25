@@ -1,26 +1,26 @@
-from enum import Enum, unique
+from enum import Enum, IntEnum, unique
 
 @unique
-class GrammaticalCase(Enum):
+class GrammaticalCase(IntEnum):
     NOMINATIVE = 0
     ACCUSATIVE = 1
     DATIVE     = 2
     GENITIVE   = 3
 
 @unique
-class GrammaticalGender(Enum):
+class GrammaticalGender(IntEnum):
     MASCULINE = 0
     NEUTRAL   = 1
     FEMININE  = 2
     PLURAL    = 3
 
 @unique
-class ArticleType(Enum):
+class ArticleType(IntEnum):
     DEFINITE   = 0
     INDEFINITE = 1
 
 @unique
-class Article(Enum):
+class Article(IntEnum):
     DER = 0
     DAS = 1
     DIE = 2
@@ -34,20 +34,6 @@ class Article(Enum):
     EINER = 10
     EINES = 11
 
-    DEFINITE_ARTICLE_LOOKUP = (
-        (DER, DAS, DIE, DIE), # Nominative
-        (DEN, DAS, DIE, DIE), # Accusative
-        (DEM, DEM, DER, DEN), # Dative
-        (DES, DES, DER, DER)  # Genitive
-    )
-
-    INDEFINITE_ARTICLE_LOOKUP = (
-        (EIN,   EIN,   EINE, None),  # Nominative
-        (EINEN, EIN,   EINE, None),  # Accusative
-        (EINEM, EINEM, EINER, None), # Dative
-        (EINES, EINES, EINER, None)  # Genitive
-    )
-
     def get_article(arttype: ArticleType, gender: GrammaticalGender, case: GrammaticalCase) -> 'Article':
         assert isinstance(arttype, ArticleType), 'The arttype parameter of {} method in {} class shall have {} type.'\
                .format(get_article.__name__, self.__class__.__name__, ArticleType.__name__)
@@ -58,8 +44,23 @@ class Article(Enum):
 
         article = None
         if arttype == ArticleType.DEFINITE:
-            article = DEFINITE_ARTICLE_LOOKUP[case][gender]
+            article = ArticleLookup.DEFINITE_ARTICLE_LOOKUP[case][gender]
         else:
-            article = INDEFINITE_ARTICLE_LOOKUP[case][gender]
+            article = ArticleLookup.INDEFINITE_ARTICLE_LOOKUP[case][gender]
         return article
 
+class ArticleLookup(object):
+    
+    DEFINITE_ARTICLE_LOOKUP = (
+        (Article.DER, Article.DAS, Article.DIE, Article.DIE), # Nominative
+        (Article.DEN, Article.DAS, Article.DIE, Article.DIE), # Accusative
+        (Article.DEM, Article.DEM, Article.DER, Article.DEN), # Dative
+        (Article.DES, Article.DES, Article.DER, Article.DER)  # Genitive
+    )
+
+    INDEFINITE_ARTICLE_LOOKUP = (
+        (Article.EIN,   Article.EIN,   Article.EINE, None),  # Nominative
+        (Article.EINEN, Article.EIN,   Article.EINE, None),  # Accusative
+        (Article.EINEM, Article.EINEM, Article.EINER, None), # Dative
+        (Article.EINES, Article.EINES, Article.EINER, None)  # Genitive
+    )

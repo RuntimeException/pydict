@@ -50,7 +50,11 @@ There are different regular expressions based on param numbers. (zero is not sup
 Parameter x1:
 ^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$
 
+Replace x1:
 def \2\(self, \4: \3\) -> \1:\r\n    if not isinstance\(\4, \3\):\r\n        raise TypeError\('The \4 parameter of {} method in {} class shall have {} type.'\r\n                        .format\(\2.__name__, self.__class__.__name__, \3.__name__\)\)\r\n
+
+Replace x1 - Assert:
+def \2\(self, \4: \3\) -> \1:\r\n    assert isinstance\(\4, \3\), 'The \4 parameter of {} method in {} class shall have {} type.'\\\r\n           .format\(\2.__name__, self.__class__.__name__, \3.__name__\)\r\n
 
 Parameter x2:
 ^[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*;[ \t]*(\w[\w\.]*)[ \t]*;[ \t]*(\w[\w]*)[ \t]*$

@@ -11,7 +11,7 @@
       <Hungarian>kávé</Hungarian>
     </Word>
     <Word>
-      <GUID>1</GUID>
+      <GUID>0</GUID>
       <WordClass>Noun</WordClass>
       <German>
         <Article>das</Article>
@@ -19,94 +19,6 @@
         <Plural>Gäste</Plural>
       </German>
       <Hungarian>vendég</Hungarian>
-    </Word>
-    <Word>
-      <WordClass>Noun</WordClass>
-      <GUID>2</GUID>
-      <German>
-        <Article></Article>
-        <Singular></Singular>
-        <Plural></Plural>
-      </German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Noun</WordClass>
-      <German>
-        <Article></Article>
-        <Singular></Singular>
-        <Plural></Plural>
-      </German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Noun</WordClass>
-      <German>
-        <Article></Article>
-        <Singular></Singular>
-        <Plural></Plural>
-      </German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <WordClass>Noun</WordClass>
-      <GUID>3</GUID>
-      <German>
-        <Article></Article>
-        <Singular></Singular>
-        <Plural></Plural>
-      </German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German>auf + D</German>
-      <Hungarian>-on,-en,-ön</Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German>an + D</German>
-      <Hungarian>-nál,-nél</Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German></German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German></German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German></German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Preposition</WordClass>
-      <German></German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <WordClass>Verb</WordClass>
-      <WordClass>Verb</WordClass>
-      <German></German>
-      <Hungarian></Hungarian>
-    </Word>
-    <Word>
-      <GUID>3</GUID>
-      <German></German>
-      <Hungarian></Hungarian>
     </Word>
   </WordCollection>
 </Dictionary>
