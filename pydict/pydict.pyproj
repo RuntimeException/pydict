@@ -42,6 +42,12 @@
     <Compile Include="language\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="adapter.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="view.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="persistence.py">
       <SubType>Code</SubType>
     </Compile>

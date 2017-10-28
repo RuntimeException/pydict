@@ -1,12 +1,14 @@
+import sys
 import abc
 import json
 import numbers
 import logging
 import logging.config
 from abc import ABC
-from language.word import Word
-from lxml import etree
 from persistence import XmlDictMdlPersistence
+from view import PyDictAppView, PyDictGuiBuilder
+from adapter import WordListModel
+from PyQt5.QtWidgets import QApplication
 
 
 logging.basicConfig()
@@ -17,8 +19,11 @@ logger = logging.getLogger('pydict')
 
 
 class PyDictApp(object):
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._qapp = None
+ 
 
     def main(self) -> None:
         logger.error('Hello error world!')
@@ -26,9 +31,21 @@ class PyDictApp(object):
         dmp.path = 'dict.xml'
         dmp.load_dict()
         print(dmp.to_string())
-        pass
 
-        
+        self._qapp = QApplication(sys.argv)
+
+        guibldr = PyDictGuiBuilder()
+        guibldr.title = 'PyDict'
+        guibldr.wordlsmdl = WordListModel(dmp.dictmdl)
+        guibldr.qapp = self._qapp
+
+        self._appview = guibldr.build()
+        self._appview.show()
+        sys.exit(self._qapp.exec_())
+
+
+
+
         
 
 if __name__ == '__main__':

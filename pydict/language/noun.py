@@ -1,9 +1,17 @@
 from language.word import Word, WordClass
-from language.article import GrammaticalGender
+from language.article import GrammaticalGender, GrammaticalCase, Article, ArticleType
 
 class Noun(Word):
     """description of class"""
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._gender = None
+        self._singular_exist = False
+        self._plural_exist = False
+        self._nounsn = None
+        self._nounpl = None
+
     def get_wordclass(self):
         return WordClass.NOUN
 
@@ -57,3 +65,20 @@ class Noun(Word):
                .format(self.__class__.__name__, str.__name__)
         self._nounpl = value
 
+    def __str__(self) -> str:
+        articlestr = ''
+        nounstr = ''
+
+        if self.gender is not None:
+            article = Article.get_article(ArticleType.DEFINITE, self.gender, GrammaticalCase.NOMINATIVE)
+            articlestr = str(article)
+            
+        # The two operand is not None or False or empty string
+        if self.nounsn and self.singular_exist:
+            nounstr = articlestr + ' ' + self.nounsn
+        elif self.nounpl and self.plural_exist:
+            nounstr = str(Article.DIE) + ' ' + self.nounpl
+        else:
+            nounstr = '{}(guid: {})'.format(self.get_wordclass().name)
+
+        return nounstr

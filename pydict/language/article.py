@@ -49,7 +49,27 @@ class Article(IntEnum):
             article = ArticleLookup.INDEFINITE_ARTICLE_LOOKUP[case][gender]
         return article
 
+    def __str__(self):
+        return self.name.lower()
+        
+        
+
 class ArticleLookup(object):
+    
+    #articlestrdict = {
+    #    Article.DER   : 'der',
+    #    Article.DAS   : 'das',
+    #    Article.DIE   : 'die',
+    #    Article.DEN   : 'den',
+    #    Article.DEM   : 'dem',
+    #    Article.DES   : 'des',
+    #    Article.EIN   : 'ein',
+    #    Article.EINE  : 'eine',
+    #    Article.EINEN : 'einen',
+    #    Article.EINEM : 'einem',
+    #    Article.EINER : 'einer',
+    #    Article.EINES : 'eines'
+    #}
     
     DEFINITE_ARTICLE_LOOKUP = (
         (Article.DER, Article.DAS, Article.DIE, Article.DIE), # Nominative

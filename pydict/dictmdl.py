@@ -23,6 +23,10 @@ class IDictModel(ABC):
     def get_wordlist(self, is_ordered: bool = False, guid_asc_ndesc: bool = True) -> list:
         pass
 
+    @abc.abstractmethod
+    def __len__(self) -> int:
+        pass
+
     
 class DictModelMap(IDictModel):
     
@@ -55,5 +59,8 @@ class DictModelMap(IDictModel):
             else:
                 wordlist.sort(key = lambda word: word.guid, reverse = True)
         return wordlist
+
+    def __len__(self) -> int:
+        return len(self._worddict)
         
         
