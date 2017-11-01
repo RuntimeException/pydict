@@ -24,6 +24,9 @@
     <Compile Include="dictmdl.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="event.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="language\article.py">
       <SubType>Code</SubType>
     </Compile>
@@ -43,6 +46,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="adapter.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\testevent.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="view.py">

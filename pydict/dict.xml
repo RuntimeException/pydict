@@ -19,6 +19,16 @@
         <Plural>Gäste</Plural>
       </German>
       <Hungarian>vendég</Hungarian>
+    </Word>    
+    <Word>
+      <GUID>2</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>das</Article>
+        <Singular>Really LongS ingleN ounIs The Cool</Singular>
+        <Plural>Gäste</Plural>
+      </German>
+      <Hungarian>vendég</Hungarian>
     </Word>
   </WordCollection>
 </Dictionary>
