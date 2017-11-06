@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QWidget, QMainWindow, QAbstractItemView, QApplicatio
 from PyQt5.QtWidgets import QVBoxLayout, QGridLayout, QHBoxLayout
 from PyQt5.Qt import Qt, QPixmap, QIcon, QFont
 from PyQt5.QtCore import QObject, QSize, QRect, QAbstractListModel, QItemSelection, QModelIndex, pyqtSlot
-from adapter import WordListModel
+from dictmdl import WordListModel, DictModel
 from language.noun import Noun
 from language.word import Word, WordClass
 from language.article import GrammaticalGender
@@ -277,10 +277,13 @@ class PyDictAppView(QMainWindow):
 
 
 class PyDictGuiBuilder(object):
-    def __init__(self, **kwargs):
+    def __init__(self, dictmdl: DictModel = None, **kwargs):
         super().__init__(**kwargs)
         self._title = 'Default Title'
-        self._wordlsmdl = WordListModel()
+        if dictmdl is None:
+            self.dictmdl = DictModel()
+        else:
+            self.dictmdl = dictmdl
         self._qapp = None
 
     @property
@@ -295,14 +298,15 @@ class PyDictGuiBuilder(object):
 
 
     @property
-    def wordlsmdl(self) -> WordListModel:
-        return self._wordlsmdl
+    def dictmdl(self) -> DictModel:
+        return self._dictmdl
 
-    @wordlsmdl.setter
-    def wordlsmdl(self, value: WordListModel) -> None:
-        assert (value is None) or isinstance(value, WordListModel), 'The wordlsmdl property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, WordListModel.__name__)
-        self._wordlsmdl = value
+    @dictmdl.setter
+    def dictmdl(self, value: DictModel) -> None:
+        if not isinstance(value, DictModel):
+            raise TypeError('The dictmdl property of {} class shall have {} type.'
+                            .format(self.__class__.__name__, DictModel.__name__))
+        self._dictmdl = value
 
 
     @property
@@ -318,5 +322,5 @@ class PyDictGuiBuilder(object):
     def build(self) -> PyDictAppView:
         appview = PyDictAppView(self.qapp)
         appview.setWindowTitle(self.title)
-        appview.central_widget.tab_dictview.wordlsmdl = self.wordlsmdl
+        appview.central_widget.tab_dictview.wordlsmdl = self.dictmdl.create_wordlistmodel()
         return appview

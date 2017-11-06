@@ -1,4 +1,5 @@
 from language.word import Word, WordClass
+from language.langobj import LangObj
 from language.article import GrammaticalGender, GrammaticalCase, Article, ArticleType
 
 class Noun(Word):
@@ -14,6 +15,12 @@ class Noun(Word):
 
     def get_wordclass(self):
         return WordClass.NOUN
+
+    def get_quality(self) -> float:
+        return 1.0
+
+    def update(self, other: LangObj) -> None:
+        pass
 
     @property
     def gender(self) -> GrammaticalGender:

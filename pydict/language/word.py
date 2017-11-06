@@ -17,7 +17,13 @@ class Word(LangObj):
     @abc.abstractmethod
     def get_wordclass(self):
         pass
+
+    @abc.abstractmethod
+    def get_quality(self) -> float:
+        pass
        
     @property
     def hun(self) -> set:
         return self._hun
+
+    

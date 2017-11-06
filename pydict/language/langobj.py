@@ -14,3 +14,7 @@ class LangObj(ABC):
             raise TypeError('The guid property of {} shall have {} type.'
                             .format(self.__class__.__name__, int.__name__))
         self._guid = value
+
+    @abc.abstractmethod
+    def update(self, other: 'LangObj') -> None:
+        pass

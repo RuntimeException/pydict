@@ -5,7 +5,7 @@ from language.noun import Noun
 from language.word import Word, WordClass
 from language.article import GrammaticalGender, GrammaticalCase, ArticleType, Article
 from lxml import etree
-from dictmdl import IDictModel, DictModelMap
+from dictmdl import DictModel
 
 logger = logging.getLogger(__name__)
 
@@ -48,22 +48,22 @@ class DictMdlSaveException(Exception):
 class IDictMdlPersistence(ABC):
     """description of class"""
 
-    DEFAULT_DICTMDL_CLASS = DictModelMap
+    DEFAULT_DICTMDL_CLASS = DictModel
 
 
-    def __init__(self, dictmdl: IDictModel = None, path: str = None, **kwargs):
+    def __init__(self, dictmdl: DictModel = None, path: str = None, **kwargs):
         super().__init__(**kwargs)
         self.dictmdl = dictmdl
         self.path = path    
 
     @property
-    def dictmdl(self) -> IDictModel:
+    def dictmdl(self) -> DictModel:
         return self._dictmdl
 
     @dictmdl.setter
-    def dictmdl(self, value: IDictModel) -> None:
-        assert (value is None) or isinstance(value, IDictModel), 'The dictmdl property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, IDictModel.__name__)
+    def dictmdl(self, value: DictModel) -> None:
+        assert (value is None) or isinstance(value, DictModel), 'The dictmdl property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, DictModel.__name__)
         self._dictmdl = value
 
 
@@ -83,7 +83,7 @@ class IDictMdlPersistence(ABC):
         pass
 
     @abc.abstractmethod
-    def load_dict(self) -> IDictModel:
+    def load_dict(self) -> DictModel:
         pass
 
     @abc.abstractmethod
@@ -91,7 +91,7 @@ class IDictMdlPersistence(ABC):
         pass
 
     @abc.abstractmethod
-    def from_string(self, string: str) -> IDictModel:
+    def from_string(self, string: str) -> DictModel:
         pass
 
 
@@ -122,17 +122,17 @@ class XmlDictMdlPersistence(IDictMdlPersistence):
         self._dictxml = None
 
 
-    def load_dict(self) -> IDictModel:
+    def load_dict(self) -> DictModel:
         self._dictxml = etree.parse(self.path)
         self._load_dict_skeleton()
 
 
-    def from_string(self, string: str) -> IDictModel:
+    def from_string(self, string: str) -> DictModel:
         self._dictxml = etree.fromstring(string)
         self._load_dict_skeleton()
 
 
-    def _load_dict_skeleton(self) -> IDictModel:
+    def _load_dict_skeleton(self) -> DictModel:
         if self.dictmdl is None:
             self.dictmdl = IDictMdlPersistence.DEFAULT_DICTMDL_CLASS()
         

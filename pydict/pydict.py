@@ -7,7 +7,7 @@ import logging.config
 from abc import ABC
 from persistence import XmlDictMdlPersistence
 from view import PyDictAppView, PyDictGuiBuilder
-from adapter import WordListModel
+from dictmdl import WordListModel
 from PyQt5.QtWidgets import QApplication
 
 
@@ -36,7 +36,7 @@ class PyDictApp(object):
 
         guibldr = PyDictGuiBuilder()
         guibldr.title = 'PyDict'
-        guibldr.wordlsmdl = WordListModel(dmp.dictmdl)
+        guibldr.dictmdl = dmp.dictmdl
         guibldr.qapp = self._qapp
 
         self._appview = guibldr.build()
