@@ -86,6 +86,6 @@ class Noun(Word):
         elif self.nounpl and self.plural_exist:
             nounstr = str(Article.DIE) + ' ' + self.nounpl
         else:
-            nounstr = '{}(guid: {})'.format(self.get_wordclass().name)
+            nounstr = '{}(guid: {})'.format(self.get_wordclass().name, self.guid)
 
         return nounstr

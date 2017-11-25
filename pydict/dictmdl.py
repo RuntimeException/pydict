@@ -45,18 +45,18 @@ class DictModel(QObject):
     def remove_word(self, guid: int) -> Word:
         assert isinstance(guid, int), 'The guid parameter of {} method in {} class shall have {} type.'\
                .format(self.remove_word.__name__, self.__class__.__name__, int.__name__)
-        word = self._worddict.pop(word.guid)
-        self.event_word_removed.emit(word)
+        self.event_word_removed.emit(self._worddict[guid])
+        word = self._worddict.pop(guid)
         return word
 
 
-    def update_word(self, word):
+    def update_word(self, word) -> None:
         assert isinstance(word, Word), 'The word parameter of {} method in {} class shall have {} type.'\
                .format(self.update_word.__name__, self.__class__.__name__, Word.__name__)
         assert (word.guid in self._worddict), 'The guid property of the word parameter of {} method in {} class shall '\
                'exist in dictionary model. (guid: {})'.format(self.update_word.__name__,self.__class__.__name__,word.guid)
         self._worddict[word.guid] = word
-        self.event_word_added.emit(word)
+        self.event_word_updated.emit(word)
 
 
     def get_word(self, guid: numbers.Integral) -> Word:
@@ -163,8 +163,12 @@ class WordListModel(QAbstractListModel):
         self.dictmdl.add_word(word)
         return True
 
-    def remove_word_request(self, word: Word) -> bool:
-        self.dictmdl.remove_word(word)
+    def remove_word_request(self, guid: int) -> bool:
+        self.dictmdl.remove_word(guid)
+        return True
+
+    def update_word_request(self, word: Word) -> bool:
+        self.dictmdl.update_word(word)
         return True
     
 
@@ -179,11 +183,13 @@ class WordListModel(QAbstractListModel):
     @pyqtSlot(Word)
     def handle_word_removed(self, word: Word) -> None:
         print('Removed - ' + str(word))
-        self.beginRemoveRows()
+        self.beginRemoveRows(QModelIndex(), self._guidlist.index(word.guid), self._guidlist.index(word.guid))
         self._guidlist.remove(word.guid)
         self.endRemoveRows()
 
 
     @pyqtSlot(Word)
     def handle_word_updated(self, word: Word) -> None:
+        row = self._guidlist.index(word.guid)
+        self.dataChanged.emit(self.index(row), self.index(row))
         print('Modified - ' + str(word))

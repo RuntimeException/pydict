@@ -4,6 +4,10 @@ from abc import ABC
 class LangObj(ABC):
     """description of class"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._guid = None
+
     @property
     def guid(self) -> int:
         return self._guid
