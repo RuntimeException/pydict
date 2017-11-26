@@ -18,7 +18,7 @@ class DictModel(QObject):
     def allocate_guid(self) -> int:
         if self.guid_alloc_en:
             self._maxguid += 1
-            return self.maxguid
+            return self._maxguid
         else:
             raise Exception('GUID allocation attempt when it is explicitly forbidden.')
 
@@ -39,6 +39,8 @@ class DictModel(QObject):
         assert (word.guid not in self._worddict), 'The guid property of the word parameter of {} method in {} class shall '\
                'not exist in dictionary model. (guid: {})'.format(self.add_word.__name__,self.__class__.__name__,word.guid)
         self._worddict[word.guid] = word
+        if word.guid > self._maxguid:
+            self._maxguid = word.guid
         self.event_word_added.emit(word)
 
 
@@ -104,6 +106,9 @@ class WordListModel(QAbstractListModel):
     def __init__(self, dictmdl: DictModel, parent: QObject = None, **kwargs):
         super().__init__(parent, **kwargs)
         self.dictmdl = dictmdl        
+
+    def allocate_guid(self) -> int:
+        return self.dictmdl.allocate_guid()
 
     @property
     def dictmdl(self) -> DictModel:

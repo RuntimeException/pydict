@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QStyle, QTabWidget, QListView, QSplitter, QLabel, QComboBox, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QStyle, QTabWidget, QListView, QSplitter, QLabel, QComboBox, QPushButton, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QMenu, QAction
 from PyQt5.QtWidgets import QWidget, QMainWindow, QAbstractItemView, QApplication
 from PyQt5.QtWidgets import QVBoxLayout, QGridLayout, QHBoxLayout, QDialog
 from PyQt5.Qt import Qt, QPixmap, QIcon, QFont
@@ -8,6 +9,7 @@ from dictmdl import WordListModel, DictModel
 from language.noun import Noun
 from language.word import Word, WordClass
 from language.article import GrammaticalGender
+from event import EventBus, EventSource, EventSaveAll, EventId
 from enum import Enum
 import copy
 
@@ -31,19 +33,16 @@ class WordView(QWidget):
         else:
             self.option = option
 
-        if (word is None) or (word.guid is None):
-            guid_text = '__None__'
-        else:
-            guid_text = hex(word.guid)
+        self.editmode = False
 
-        self.l_wordedit_title = QLabel(str(word))
+        self.l_wordedit_title = QLabel('')
         self.f_wordedit_title = self.l_wordedit_title.font()
         self.f_wordedit_title.setBold(True)
         self.f_wordedit_title.setPointSize(self.f_wordedit_title.pointSize() * 2)
         self.l_wordedit_title.setFont(self.f_wordedit_title)
 
         self.l_guid_title = QLabel(self.WORD_GUID_TEXT)
-        self.l_guid = QLabel(guid_text)
+        self.l_guid = QLabel('')
 
         if self.option == WordWidgetOption.WORD_EDIT_MODE:
             self.b_edit = QPushButton(self.BTN_EDIT_TEXT)
@@ -59,12 +58,31 @@ class WordView(QWidget):
         self.lhb_cmdbtns.addWidget(self.b_save)
         self.lhb_cmdbtns.addWidget(self.b_cancel)
 
-        
         if self.option == WordWidgetOption.WORD_EDIT_MODE:
             self.b_edit.clicked.connect(self.handle_b_edit_clicked)
         self.b_save.clicked.connect(self.handle_b_save_clicked)
         self.b_cancel.clicked.connect(self.handle_b_cancel_clicked)
 
+
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
+
+
+    def init_editmode(self) -> None:
+        if self.option == WordWidgetOption.WORD_EDIT_MODE:
+            self.set_editable(False)
+        elif self.option == WordWidgetOption.WORD_NEW_MODE:
+            self.set_editable(True)
+        else:
+            raise NotImplementedError('Invalid {} value: {}.'
+                  .format(WordWidgetOption.__class__.__name__, self.option.name))
 
     def set_editable(self, enable: bool) -> None:
         self.editmode = enable
@@ -89,8 +107,14 @@ class WordView(QWidget):
 
     def update_view(self) -> None:
         if self.word is None:
-            self.l_wordedit_title.setText('__None__')
-            self.l_guid.setText('__None__')
+            self.l_wordedit_title.setText('')
+            self.l_guid.setText('')
+        elif self.option == WordWidgetOption.WORD_NEW_MODE:
+            self.l_wordedit_title.setText('New ' + self.word.get_wordclass().name)
+            if self.word.guid is None:
+                self.l_guid.setText('__None__')
+            else:
+                self.l_guid.setText(hex(self.word.guid))
         else:
             self.l_wordedit_title.setText(str(self.word))
             if self.word.guid is None:
@@ -107,20 +131,25 @@ class WordView(QWidget):
 
     def handle_b_save_clicked(self) -> None:
         self.set_editable(False)
+        self.parse_view()
         self.update_view()
         if self.word is not None:
             if self.option == WordWidgetOption.WORD_EDIT_MODE:
                 self.event_word_updated.emit(self.word)
             elif self.option == WordWidgetOption.WORD_NEW_MODE:
                 self.event_word_added.emit(self.word)
+        self.event_accept.emit()
 
     def handle_b_cancel_clicked(self) -> None:
         self.set_editable(False)
         self.update_view()
+        self.event_reject.emit()
 
     event_word_added   = pyqtSignal(Word)
     event_word_removed = pyqtSignal(int)
     event_word_updated = pyqtSignal(Word)
+    event_accept = pyqtSignal()
+    event_reject = pyqtSignal()
 
 
 class NounView(WordView):
@@ -136,7 +165,7 @@ class NounView(WordView):
         self.l_nounsn_title = QLabel(self.NOUNSN_LABEL_TEXT) 
         self.l_nounpl_title = QLabel(self.NOUNPL_LABEL_TEXT) 
 
-        self.cb_gender = QComboBox() 
+        self.cmb_gender = QComboBox()
         self.le_nounsn = QLineEdit() 
         self.le_nounpl = QLineEdit()
 
@@ -162,10 +191,10 @@ class NounView(WordView):
         ico_blue.addPixmap(px_blue, QIcon.Disabled)
         ico_yellow.addPixmap(px_yellow, QIcon.Disabled)
 
-        self.cb_gender.addItem(ico_blue,   GrammaticalGender.MASCULINE.name)
-        self.cb_gender.addItem(ico_green,  GrammaticalGender.NEUTRAL.name)
-        self.cb_gender.addItem(ico_red,    GrammaticalGender.FEMININE.name)
-        self.cb_gender.addItem(ico_yellow, GrammaticalGender.PLURAL.name)
+        self.cmb_gender.addItem(ico_blue,   GrammaticalGender.MASCULINE.name)
+        self.cmb_gender.addItem(ico_green,  GrammaticalGender.NEUTRAL.name)
+        self.cmb_gender.addItem(ico_red,    GrammaticalGender.FEMININE.name)
+        self.cmb_gender.addItem(ico_yellow, GrammaticalGender.PLURAL.name)
 
         self.lgr_word.addWidget(self.l_wordedit_title, 0, 0, 1, 3, Qt.AlignHCenter)
         self.lgr_word.addLayout(self.lhb_cmdbtns, 1, 0, 1, 3)
@@ -174,7 +203,7 @@ class NounView(WordView):
         self.lgr_word.addWidget(self.l_nounsn_title, 4, 0)
         self.lgr_word.addWidget(self.l_nounpl_title, 5, 0)
         self.lgr_word.addWidget(self.l_guid, 2, 1, 1, 2)
-        self.lgr_word.addWidget(self.cb_gender, 3, 1, 1, 2)
+        self.lgr_word.addWidget(self.cmb_gender, 3, 1, 1, 2)
         self.lgr_word.addWidget(self.le_nounsn, 4, 1, 1, 2)
         self.lgr_word.addWidget(self.le_nounpl, 5, 1, 1, 2)
 
@@ -186,9 +215,11 @@ class NounView(WordView):
         self.lgr_word.setRowStretch(6, 90)
 
         self.setLayout(self.lgr_word)
-
         self.noun = noun
-        self.set_editable(False)
+        self.init_editmode()
+        
+        self.cmb_gender.currentIndexChanged.connect(self.handle_cmb_gender_textchange)
+
 
     @property
     def word(self) -> Word:
@@ -203,54 +234,78 @@ class NounView(WordView):
         assert (noun is None) or isinstance(noun, Noun), 'The noun property of {} class shall have {} type.'\
                .format(self.__class__.__name__, Noun.__name__)
         self._noun = noun
+        self.set_editable(False)
         self.update_view()
-
 
     def parse_view(self) -> None:
         if self.noun is not None:
             self.noun.gender = self.parse_gender()
             self.noun.nounsn = self.parse_nounsn()
             self.noun.nounpl = self.parse_nounpl()
+            if (self.noun.gender == GrammaticalGender.PLURAL) or (self.noun.nounsn == ''):
+                self.noun.singular_exist = False
+                self.noun.nounsn = ''
+            else:
+                self.noun.singular_exist = True
+
+            if self.noun.nounpl == '':
+                self.noun.plural_exist = False
+            else:
+                self.noun.plural_exist = True
+                
             super().parse_view()
+
 
     def update_view(self) -> None:
         if self.noun is None:
             self.le_nounsn.setText('')
             self.le_nounpl.setText('')
-            self.cb_gender.setCurrentIndex(0)
+            self.cmb_gender.setCurrentIndex(0)
         else:
             self.le_nounsn.setText(self.noun.nounsn or '')
             self.le_nounpl.setText(self.noun.nounpl or '')
             if self.noun.gender is not None:
-                gender_cbidx = self.cb_gender.findText(self.noun.gender.name)
+                gender_cbidx = self.cmb_gender.findText(self.noun.gender.name)
             else:
                 gender_cbidx = 0
-            self.cb_gender.setCurrentIndex(gender_cbidx)
+            self.cmb_gender.setCurrentIndex(gender_cbidx)
+            
+            if self.noun.gender == GrammaticalGender.PLURAL:
+                self.le_nounsn.setEnabled(False)
+            else:
+                if self.editmode:
+                    self.le_nounsn.setEnabled(True)
+                else:
+                    self.le_nounsn.setEnabled(False)
         super().update_view()
 
     def set_editable(self, enable: bool) -> None:
         super().set_editable(enable)
-        self.cb_gender.setEnabled(enable)
+        self.cmb_gender.setEnabled(enable)
         self.le_nounsn.setEnabled(enable)
         self.le_nounpl.setEnabled(enable)
 
     def parse_gender(self) -> GrammaticalGender:
-        text = self.cb_gender.currentText()
+        text = self.cmb_gender.currentText()
         if GrammaticalGender.__members__.get(text) is None:
             return GrammaticalGender.MASCULINE
         else:
             return GrammaticalGender[text]
 
     def parse_nounsn(self) -> str:
-        return self.le_nounsn.text()
+        return self.le_nounsn.text().strip()
 
     def parse_nounpl(self) -> str:
-        return self.le_nounpl.text()
+        return self.le_nounpl.text().strip()
 
-    def handle_b_save_clicked(self):
-        self.parse_view()
-        self.update_view()
-        super().handle_b_save_clicked()
+    def handle_cmb_gender_textchange(self, text: str) -> None:
+        if self.parse_gender() == GrammaticalGender.PLURAL:
+            self.le_nounsn.setEnabled(False)
+        else:
+            if self.editmode:
+                self.le_nounsn.setEnabled(True)
+            else:
+                self.le_nounsn.setEnabled(False)
 
 
 class WordEditView(QWidget):
@@ -270,6 +325,17 @@ class WordEditView(QWidget):
         self.layout.addWidget(self.w_nounview)
 
         self.setLayout(self.layout)
+
+
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
 
 
     @property
@@ -317,22 +383,62 @@ class WordEditView(QWidget):
 
 class WordDialog(QDialog):
 
-    def __init__(self, wordclass: WordClass, parent = None, **kwargs):
+    def __init__(self, wordclass: WordClass, model: WordListModel, parent = None, **kwargs):
         super().__init__(parent, **kwargs)
         
         self.word = None
-        self.wordview = None
+        self.w_wordview = None
 
         self.layout = QVBoxLayout()
 
         if wordclass == WordClass.NOUN:
-            self.word = Noun()
-            self.wordview = NounView(self.word, WordWidgetOption.WORD_NEW_MODE)
+            self.word       = Noun()
+            self.w_wordview = NounView(self.word, WordWidgetOption.WORD_NEW_MODE)
         else:
-            pass
+            raise NotImplementedError('WordDialog with unknown WordClass: {}.'.format(wordclass.name))
 
-        self.layout.addWidget(self.wordview)
+        self.wordlsmdl = model
+
+        guid = self.wordlsmdl.allocate_guid()
+        self.word.guid = guid
+        self.w_wordview.update_view()
+
+        self.layout.addWidget(self.w_wordview)
         self.setLayout(self.layout)
+
+
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
+
+
+    @property
+    def wordlsmdl(self) -> WordListModel:
+        return self._wordlsmdl
+
+    @wordlsmdl.setter
+    def wordlsmdl(self, value: WordListModel) -> None:
+        assert isinstance(value, WordListModel), 'The wordlsmdl property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, WordListModel.__name__)
+        self._wordlsmdl = value
+        self.connect_wordview(self.w_wordview)
+
+    def connect_wordview(self, wordview: WordView) -> None:
+        wordview.event_word_added.connect(self.wordlsmdl.add_word_request)
+        wordview.event_accept.connect(self.handle_accept)
+        wordview.event_reject.connect(self.handle_reject)
+        
+    def handle_accept(self) -> None:
+        self.done(0)
+
+    def handle_reject(self) -> None:
+        self.done(1)    
 
 
 class DictView(QWidget):
@@ -348,10 +454,10 @@ class DictView(QWidget):
 
         self.b_addword = QPushButton(self.BTN_ADDWORD_TEXT)
         self.b_rmword  = QPushButton(self.BTN_RMWORD_TEXT)
-        self.cb_wordclass = QComboBox()
+        self.cmb_wordclass = QComboBox()
         
         for wc in WordClass:
-            self.cb_wordclass.addItem(wc.name)
+            self.cmb_wordclass.addItem(wc.name)
 
         self.hsplitter = QSplitter(Qt.Horizontal)
 
@@ -366,7 +472,7 @@ class DictView(QWidget):
         self.hsplitter.addWidget(self.wordeditview)
         self.hsplitter.setSizes([PyDictAppView.DESKTOP_DEFAULT_WIDTH * 0.4, PyDictAppView.DESKTOP_DEFAULT_WIDTH * 0.6])
 
-        self.lhb_control.addWidget(self.cb_wordclass)
+        self.lhb_control.addWidget(self.cmb_wordclass)
         self.lhb_control.addWidget(self.b_addword)
         self.lhb_control.addWidget(self.b_rmword)
         self.lhb_control.addStretch()
@@ -378,6 +484,16 @@ class DictView(QWidget):
         self.b_addword.clicked.connect(self.handle_b_addword_clicked)
         self.b_rmword.clicked.connect(self.handle_b_rmword_clicked)
         
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
+        self.wordeditview.eventbus = self.eventbus
 
     @property
     def wordlsmdl(self) -> WordListModel:
@@ -392,7 +508,7 @@ class DictView(QWidget):
 
     def handle_b_addword_clicked(self) -> None:
         wc = self.parse_wordclass()
-        word_dialog = WordDialog(wc, self)
+        word_dialog = WordDialog(wc, self.wordlsmdl, self)
         word_dialog.show()
         word_dialog.exec()
 
@@ -405,7 +521,7 @@ class DictView(QWidget):
                 self.wordlsmdl.remove_word_request(guid)
 
     def parse_wordclass(self) -> WordClass:
-        wordclass_text = self.cb_wordclass.currentText()
+        wordclass_text = self.cmb_wordclass.currentText()
         if WordClass.__members__.get(wordclass_text) is None:
             return WordClass.NOUN
         else:
@@ -428,6 +544,17 @@ class PyDictCentralWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
+        self.tab_dictview.eventbus = self.eventbus
+
 
 class PyDictAppView(QMainWindow):
     DESKTOP_DEFAULT_WIDTH = 1280
@@ -435,6 +562,9 @@ class PyDictAppView(QMainWindow):
 
     def __init__(self, qapp: QApplication = None, **kwargs):
         super().__init__(**kwargs)
+
+        self._eventbus = None
+        self.eventsrc_saveall = EventSource(EventId.SAVE_ALL)
         self.qapp = qapp        
 
         if qapp is None:
@@ -448,7 +578,33 @@ class PyDictAppView(QMainWindow):
         self.setGeometry(aligned_rect)
 
         self.central_widget = PyDictCentralWidget()
+
+        self.mn_file = self.menuBar().addMenu('&File')
+        self.act_save = QAction('&Save', None)
+        self.mn_file.addAction(self.act_save)
+
+        self.act_save.triggered.connect(self.handle_act_save_triggered)
         self.setCentralWidget(self.central_widget)
+
+
+    def handle_act_save_triggered(self, checked: bool) -> None:
+        self.eventsrc_saveall.fire()
+
+
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        if self.eventbus is not None:
+            self.eventbus.remove_eventsrc(self.eventsrc_saveall)
+        self._eventbus = value
+        self.central_widget.eventbus = self.eventbus
+        self._eventbus.add_eventsrc(self.eventsrc_saveall)
 
 
 class PyDictGuiBuilder(object):
@@ -494,8 +650,21 @@ class PyDictGuiBuilder(object):
                .format(self.__class__.__name__, QApplication.__name__)
         self._qapp = value
 
+
+    @property
+    def eventbus(self) -> EventBus:
+        return self._eventbus
+
+    @eventbus.setter
+    def eventbus(self, value: EventBus) -> None:
+        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
+               .format(self.__class__.__name__, EventBus.__name__)
+        self._eventbus = value
+
+
     def build(self) -> PyDictAppView:
         appview = PyDictAppView(self.qapp)
+        appview.eventbus = self.eventbus
         appview.setWindowTitle(self.title)
         appview.central_widget.tab_dictview.wordlsmdl = self.dictmdl.create_wordlistmodel()
         return appview

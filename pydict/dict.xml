@@ -1,7 +1,7 @@
 <Dictionary>
   <WordCollection>
     <Word>
-      <GUID>0</GUID>
+      <GUID>0x0</GUID>
       <WordClass>Noun</WordClass>
       <German>
         <Article>der</Article>
@@ -11,7 +11,7 @@
       <Hungarian>kávé</Hungarian>
     </Word>
     <Word>
-      <GUID>1</GUID>
+      <GUID>0x1</GUID>
       <WordClass>Noun</WordClass>
       <German>
         <Article>das</Article>
@@ -19,9 +19,9 @@
         <Plural>Gäste</Plural>
       </German>
       <Hungarian>vendég</Hungarian>
-    </Word>    
+    </Word>
     <Word>
-      <GUID>2</GUID>
+      <GUID>0x2</GUID>
       <WordClass>Noun</WordClass>
       <German>
         <Article>das</Article>

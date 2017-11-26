@@ -125,6 +125,7 @@ class XmlDictMdlPersistence(IDictMdlPersistence):
     def load_dict(self) -> DictModel:
         self._dictxml = etree.parse(self.path)
         self._load_dict_skeleton()
+        self.dictmdl.guid_alloc_en = True
 
 
     def from_string(self, string: str) -> DictModel:
@@ -284,7 +285,8 @@ class XmlDictMdlPersistence(IDictMdlPersistence):
         
 
     def save_dict(self) -> None:
-        pass
+        xmldict = self._save_dict_skeleton()
+        xmldict.write(self.path, pretty_print = True, encoding = self.XML_FILE_DEFAULT_CODING)
 
     def to_string(self) -> str:
         xmldict = self._save_dict_skeleton()
