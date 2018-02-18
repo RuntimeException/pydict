@@ -600,5 +600,55 @@
       </German>
       <Hungarian></Hungarian>
     </Word>
+    <Word>
+      <GUID>0x3f</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>die</Article>
+        <Singular>Geschichte</Singular>
+        <Plural>Geschichten</Plural>
+      </German>
+      <Hungarian></Hungarian>
+    </Word>
+    <Word>
+      <GUID>0x40</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>der</Article>
+        <Singular>König</Singular>
+        <Plural>Könige</Plural>
+      </German>
+      <Hungarian></Hungarian>
+    </Word>
+    <Word>
+      <GUID>0x41</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>der</Article>
+        <Singular>Prinz</Singular>
+        <Plural>Prinzen</Plural>
+      </German>
+      <Hungarian></Hungarian>
+    </Word>
+    <Word>
+      <GUID>0x42</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>die</Article>
+        <Singular>Prinzessin</Singular>
+        <Plural>Prinzessinnen</Plural>
+      </German>
+      <Hungarian></Hungarian>
+    </Word>
+    <Word>
+      <GUID>0x43</GUID>
+      <WordClass>Noun</WordClass>
+      <German>
+        <Article>die</Article>
+        <Singular>Mannschaft</Singular>
+        <Plural>Mannschaften</Plural>
+      </German>
+      <Hungarian></Hungarian>
+    </Word>
   </WordCollection>
 </Dictionary>

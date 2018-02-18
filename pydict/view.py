@@ -564,7 +564,7 @@ class PyDictAppView(QMainWindow):
         super().__init__(**kwargs)
 
         self._eventbus = None
-        self.eventsrc_saveall = EventSource(EventId.SAVE_ALL)
+        self.eventsrc_saveall = EventSource(EventId.EVENT_SAVE_ALL)
         self.qapp = qapp        
 
         if qapp is None:

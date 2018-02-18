@@ -1,29 +1,29 @@
 from enum import Enum, IntEnum, unique
 import abc
 from abc import ABC
-
-class GlobalEventManager(object):
-
-    pass
-
+ 
 
 @unique
-class GlobalEventId(IntEnum):
-    INVALID = 0
-    DICT_MODIFIED = 1
-    
+class EventId(IntEnum):
+    EVENT = 0
+    EVENT_SAVE_ALL= 1
 
-class GlobalEvent(ABC):
-    handlers = []
+
+class Event(ABC):
+    handlers = {}
 
     @classmethod
-    def eventid(cls) -> GlobalEventId:
-        return GlobalEventId.INVALID
+    def eventid(cls) -> EventId:
+        return EventId.EVENT
 
     @classmethod
     def subscribe(cls, handler: object) -> None:
         if callable(handler):
-            cls.handlers.append(handler)
+            eid = cls.eventid()
+            if eid not in cls.handlers:
+                handlers[eid] = [handler]
+            else:
+                handlers[eid].append(handler)           
         else:
             raise TypeError('Event handler shall be callable but {} is not callable.'
                             .format(str(handler)))
@@ -31,54 +31,35 @@ class GlobalEvent(ABC):
     @classmethod
     def unsubscribe(cls, handler: object) -> None:
         if callable(handler):
-            cls.handlers.remove(handler)
+            eid = cls.eventid()
+            if (eid in cls.handlers) and (handler in cls.handlers[id]):
+                cls.handlers[id].remove(handler)
+            else:
+                pass # Maybe logging later
         else:
             raise TypeError('Event handler shall be callable but {} is not callable.'
                             .format(str(handler)))
 
     def __init__(self, **kwargs):
-        pass
+        raise NotImplementedError('Event shall not instantiated because it is an abstract class.')
 
 
     def fire(self, **kwargs):
-        for handler in self.handlers:
-            handler(self, **kwargs)
+        eid = cls.eventid()
+        if eid in cls.handlers:
+            for handler in self.handlers[eid]:
+                handler(self, **kwargs)
+        super().fire()
+            
 
     def __str__(self) -> str:
         return '{}{}'.format(self.eventid.name, self.__dict__)
 
-class GlobalDictModEvent(GlobalEvent):
-    handlers = []
-
-
-class Event(ABC):
-    
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.handlers = []
-
-    @abc.abstractmethod
-    def eventid(self) -> 'EventId':
-        pass
-
 
 class EventSaveAll(Event):
 
-    def eventid(self) -> 'EventId':
-        return EventId.SAVE_ALL
-
-
-@unique
-class EventId(Enum):
-    INVALID  = (0, Event)
-    SAVE_ALL = (1, EventSaveAll)
-
-    def __init__(self, id: int, eventclass: type):
-        self.id = id
-        self.eventclass = eventclass
-
-    def create_event(self, **kwargs):
-        return self.eventclass(**kwargs)
+    def eventid(self) -> EventId:
+        return EventId.EVENT_SAVE_ALL
 
 
 class EventSource(object):
@@ -115,13 +96,10 @@ class EventSource(object):
                             .format(str(handler)))
 
 
-    def fire(self, event: Event = None) -> Event:
-        if event is None:
-            event = self.eventid.create_event()
-        else:
-            if event.eventid() != self.eventid:
-                raise TypeError('The expected eventid of {} is {} but {} was passed.'
-                                .format(self.__class__.__name__, self.eventid.name, event.eventid.name))
+    def fire(self, event: Event) -> Event:
+        if event.eventid() != self.eventid:
+            raise TypeError('The expected eventid of {} is {} but {} was passed.'
+                            .format(self.__class__.__name__, self.eventid.name, event.eventid.name))
 
         for handler in self._handlers:
             handler(event)

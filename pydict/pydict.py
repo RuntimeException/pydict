@@ -46,7 +46,7 @@ class PyDictApp(object):
         self._appview = guibldr.build()
         self._appview.show()
 
-        self._eventbus.subscribe(EventId.SAVE_ALL, self.handler_saveall)
+        self._eventbus.subscribe(EventId.EVENT_SAVE_ALL, self.handler_saveall)
         sys.exit(self._qapp.exec_())
 
     def handler_saveall(self, event: Event) -> None:
