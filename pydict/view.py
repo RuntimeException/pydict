@@ -9,7 +9,7 @@ from dictmdl import WordListModel, DictModel
 from language.noun import Noun
 from language.word import Word, WordClass
 from language.article import GrammaticalGender
-from event import EventBus, EventSource, EventSaveAll, EventId
+from event import EventSaveAll, EventId, EventWordRemoveRequest, EventWordAddRequest, EventWordUpdateRequest
 from enum import Enum
 import copy
 
@@ -64,17 +64,6 @@ class WordView(QWidget):
         self.b_cancel.clicked.connect(self.handle_b_cancel_clicked)
 
 
-    @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-
-
     def init_editmode(self) -> None:
         if self.option == WordWidgetOption.WORD_EDIT_MODE:
             self.set_editable(False)
@@ -84,12 +73,14 @@ class WordView(QWidget):
             raise NotImplementedError('Invalid {} value: {}.'
                   .format(WordWidgetOption.__class__.__name__, self.option.name))
 
+
     def set_editable(self, enable: bool) -> None:
         self.editmode = enable
         if (self.option is not None) and (self.option == WordWidgetOption.WORD_EDIT_MODE):
             self.b_edit.setEnabled(not enable)
         self.b_save.setEnabled(enable)
         self.b_cancel.setEnabled(enable)
+
 
     @property
     def editmode(self) -> bool:
@@ -135,9 +126,11 @@ class WordView(QWidget):
         self.update_view()
         if self.word is not None:
             if self.option == WordWidgetOption.WORD_EDIT_MODE:
-                self.event_word_updated.emit(self.word)
+                event_wordupdreq = EventWordUpdateRequest(self.word)
+                event_wordupdreq.fire()
             elif self.option == WordWidgetOption.WORD_NEW_MODE:
-                self.event_word_added.emit(self.word)
+                event_wordaddreq = EventWordAddRequest(self.word)
+                event_wordaddreq.fire()
         self.event_accept.emit()
 
     def handle_b_cancel_clicked(self) -> None:
@@ -145,11 +138,9 @@ class WordView(QWidget):
         self.update_view()
         self.event_reject.emit()
 
-    event_word_added   = pyqtSignal(Word)
-    event_word_removed = pyqtSignal(int)
-    event_word_updated = pyqtSignal(Word)
     event_accept = pyqtSignal()
     event_reject = pyqtSignal()
+
 
 
 class NounView(WordView):
@@ -237,6 +228,7 @@ class NounView(WordView):
         self.set_editable(False)
         self.update_view()
 
+
     def parse_view(self) -> None:
         if self.noun is not None:
             self.noun.gender = self.parse_gender()
@@ -308,6 +300,7 @@ class NounView(WordView):
                 self.le_nounsn.setEnabled(False)
 
 
+
 class WordEditView(QWidget):
 
     def __init__(self, parent: QObject = None, model: WordListModel = None, **kwargs):
@@ -328,17 +321,6 @@ class WordEditView(QWidget):
 
 
     @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-
-
-    @property
     def wordlsmdl(self) -> WordListModel:
         return self._wordlsmdl
 
@@ -346,11 +328,8 @@ class WordEditView(QWidget):
     def wordlsmdl(self, value: WordListModel) -> None:
         assert (value is None) or isinstance(value, WordListModel), 'The wordlsmdl property of {} class shall have {} type.'\
                .format(self.__class__.__name__, WordListModel.__name__)
-        if hasattr(self, '_wordlsmdl') and (self._wordlsmdl is not None):
-            self.disconnect_wordview(self._wordlsmdl)
         self._wordlsmdl = value
-        if value is not None:
-            self.connect_wordview(self.w_nounview)
+
 
     @pyqtSlot(QModelIndex)
     def handle_wordlistitem_activated(self, mdlidx: QModelIndex) -> None:
@@ -359,15 +338,6 @@ class WordEditView(QWidget):
             word = self.wordlsmdl.get_word(mdlidx)
             self.activate_wordview(word)
 
-    def connect_wordview(self, wordview: WordView) -> None:
-        wordview.event_word_added.connect(self.wordlsmdl.add_word_request)
-        wordview.event_word_removed.connect(self.wordlsmdl.remove_word_request)
-        wordview.event_word_updated.connect(self.wordlsmdl.update_word_request)
-
-    def disconnect_wordview(self, wordview: WordView) -> None:
-        wordview.event_word_added.disconnect(self.wordlsmdl.add_word_request)
-        wordview.event_word_removed.disconnect(self.wordlsmdl.remove_word_request)
-        wordview.event_word_updated.disconnect(self.wordlsmdl.update_word_request)
 
     def activate_wordview(self, word: Word) -> None:
         if word is None:
@@ -379,6 +349,7 @@ class WordEditView(QWidget):
             self.w_nounview.show()
         else:
             raise NotImplementedError('Invalid WordClass in activate_wordview of {} class.'.format(self.__class__.__name__))
+
 
 
 class WordDialog(QDialog):
@@ -408,17 +379,6 @@ class WordDialog(QDialog):
 
 
     @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-
-
-    @property
     def wordlsmdl(self) -> WordListModel:
         return self._wordlsmdl
 
@@ -430,7 +390,6 @@ class WordDialog(QDialog):
         self.connect_wordview(self.w_wordview)
 
     def connect_wordview(self, wordview: WordView) -> None:
-        wordview.event_word_added.connect(self.wordlsmdl.add_word_request)
         wordview.event_accept.connect(self.handle_accept)
         wordview.event_reject.connect(self.handle_reject)
         
@@ -439,6 +398,7 @@ class WordDialog(QDialog):
 
     def handle_reject(self) -> None:
         self.done(1)    
+
 
 
 class DictView(QWidget):
@@ -483,17 +443,7 @@ class DictView(QWidget):
 
         self.b_addword.clicked.connect(self.handle_b_addword_clicked)
         self.b_rmword.clicked.connect(self.handle_b_rmword_clicked)
-        
-    @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
 
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-        self.wordeditview.eventbus = self.eventbus
 
     @property
     def wordlsmdl(self) -> WordListModel:
@@ -506,11 +456,13 @@ class DictView(QWidget):
         self.wordlistview.setModel(value)
         self.wordeditview.wordlsmdl = value
 
+
     def handle_b_addword_clicked(self) -> None:
         wc = self.parse_wordclass()
         word_dialog = WordDialog(wc, self.wordlsmdl, self)
         word_dialog.show()
         word_dialog.exec()
+
 
     def handle_b_rmword_clicked(self) -> None:
         self.wordeditview.activate_wordview(None)
@@ -518,7 +470,9 @@ class DictView(QWidget):
         if sel_indexes is not None:
             for index in sel_indexes:
                 guid = self.wordlsmdl.get_guid(index)
-                self.wordlsmdl.remove_word_request(guid)
+                event_wordremreq = EventWordRemoveRequest(guid)
+                event_wordremreq.fire()
+
 
     def parse_wordclass(self) -> WordClass:
         wordclass_text = self.cmb_wordclass.currentText()
@@ -526,6 +480,7 @@ class DictView(QWidget):
             return WordClass.NOUN
         else:
             return WordClass[wordclass_text]
+
 
 
 class PyDictCentralWidget(QWidget):
@@ -544,16 +499,6 @@ class PyDictCentralWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
-    @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-        self.tab_dictview.eventbus = self.eventbus
 
 
 class PyDictAppView(QMainWindow):
@@ -563,8 +508,6 @@ class PyDictAppView(QMainWindow):
     def __init__(self, qapp: QApplication = None, **kwargs):
         super().__init__(**kwargs)
 
-        self._eventbus = None
-        self.eventsrc_saveall = EventSource(EventId.EVENT_SAVE_ALL)
         self.qapp = qapp        
 
         if qapp is None:
@@ -588,83 +531,5 @@ class PyDictAppView(QMainWindow):
 
 
     def handle_act_save_triggered(self, checked: bool) -> None:
-        self.eventsrc_saveall.fire()
-
-
-    @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        if self.eventbus is not None:
-            self.eventbus.remove_eventsrc(self.eventsrc_saveall)
-        self._eventbus = value
-        self.central_widget.eventbus = self.eventbus
-        self._eventbus.add_eventsrc(self.eventsrc_saveall)
-
-
-class PyDictGuiBuilder(object):
-    def __init__(self, dictmdl: DictModel = None, **kwargs):
-        super().__init__(**kwargs)
-        self._title = 'Default Title'
-        if dictmdl is None:
-            self.dictmdl = DictModel()
-        else:
-            self.dictmdl = dictmdl
-        self._qapp = None
-
-    @property
-    def title(self) -> str:
-        return self._title
-
-    @title.setter
-    def title(self, value: str) -> None:
-        assert (value is None) or isinstance(value, str), 'The title property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, str.__name__)
-        self._title = value
-
-
-    @property
-    def dictmdl(self) -> DictModel:
-        return self._dictmdl
-
-    @dictmdl.setter
-    def dictmdl(self, value: DictModel) -> None:
-        if not isinstance(value, DictModel):
-            raise TypeError('The dictmdl property of {} class shall have {} type.'
-                            .format(self.__class__.__name__, DictModel.__name__))
-        self._dictmdl = value
-
-
-    @property
-    def qapp(self) -> QApplication:
-        return self._qapp
-
-    @qapp.setter
-    def qapp(self, value: QApplication) -> None:
-        assert (value is None) or isinstance(value, QApplication), 'The qapp property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, QApplication.__name__)
-        self._qapp = value
-
-
-    @property
-    def eventbus(self) -> EventBus:
-        return self._eventbus
-
-    @eventbus.setter
-    def eventbus(self, value: EventBus) -> None:
-        assert isinstance(value, EventBus), 'The eventbus property of {} class shall have {} type.'\
-               .format(self.__class__.__name__, EventBus.__name__)
-        self._eventbus = value
-
-
-    def build(self) -> PyDictAppView:
-        appview = PyDictAppView(self.qapp)
-        appview.eventbus = self.eventbus
-        appview.setWindowTitle(self.title)
-        appview.central_widget.tab_dictview.wordlsmdl = self.dictmdl.create_wordlistmodel()
-        return appview
+        event_saveall = EventSaveAll()
+        event_saveall.fire()

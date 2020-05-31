@@ -1,3 +1,8 @@
+# Local
+*.mp3
+*.zip
+*.pdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
